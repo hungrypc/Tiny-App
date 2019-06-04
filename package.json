@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/hungrypc/Tiny-App/issues"
   },
-  "homepage": "https://github.com/hungrypc/Tiny-App#readme"
+  "homepage": "https://github.com/hungrypc/Tiny-App#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
