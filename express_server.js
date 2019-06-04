@@ -7,10 +7,14 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
+app.get("/", (request, response) => {
+  response.send("Hello!");
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
+});
+
+app.get("/urls.json", (request, response) => {
+  response.json(urlDatabase);
 });
