@@ -9,6 +9,7 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -48,9 +49,17 @@ app.get("/urls/:shortURL", (request, response) => {
   response.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+app.post("/urls", (request, response) => {
+  let longUrl = request.body.longURL;
+  let shortUrl = generateRandomString();
+  urlDatabase[shortUrl] = longUrl;
+  response.redirect('urls/'+ shortUrl);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
 });
 
 app.listen(PORT, () => {

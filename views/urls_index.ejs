@@ -10,10 +10,12 @@
 </head>
 <body style="font-size:20px; padding:50px;">
   <% include ./partials/_header %>
+  <p></p>
+  <h5>Index of Links</h5>
     <ul>
 
      <% for (shortUrl in urls) { %>
-          <li><%= shortUrl %> - <%= urls[shortUrl] %>
+          <li><a href="http://localhost:8080/u/<%= shortUrl %>"><%= shortUrl %> </a>  -  <%= urls[shortUrl] %>
            </li>
       <% }; %>
     </ul>
