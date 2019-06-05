@@ -9,7 +9,6 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -22,18 +21,17 @@ function generateRandomString(){
   return output;
 }
 
-
-app.get("/", (request, response) => {
-  response.send("Hello!");
-});
+// app.get("/", (request, response) => {
+//   response.send("Hello!");
+// });
 
 // app.get("/urls.json", (request, response) => {
 //   response.json(urlDatabase);
 // });
 
-app.get("/hello", (request, response) => {
-  response.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/hello", (request, response) => {
+//   response.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.get("/urls", (request, response) => {
   let templateVars = { urls: urlDatabase };
@@ -46,20 +44,38 @@ app.get("/urls/new", (request, response) => {
 
 app.get("/urls/:shortURL", (request, response) => {
   let templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase};
-  response.render("urls_show", templateVars);
+  if (urlDatabase[request.params.shortURL]) {
+    response.render("urls_show", templateVars);
+  } else {
+    response.redirect('/urls');
+  }
 });
 
 app.post("/urls", (request, response) => {
   let longUrl = request.body.longURL;
   let shortUrl = generateRandomString();
   urlDatabase[shortUrl] = longUrl;
-  response.redirect('urls/'+ shortUrl);
+  response.redirect(`urls/${shortUrl}`);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    response.redirect('/urls');
+  }
+});
+
+app.post('/urls/:shortURL/delete', (request, response) => {
+  delete urlDatabase[request.params.shortURL];
+  response.redirect('/urls');
+})
+
+// catchall
+app.get("*", (request, response) => {
+  response.redirect("/urls/");
 });
 
 app.listen(PORT, () => {
