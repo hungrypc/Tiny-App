@@ -15,12 +15,18 @@
     <ul>
 
      <% for (shortUrl in urls) { %>
-          <li><a href="http://localhost:8080/urls/<%= shortUrl %>"><%= shortUrl %> </a>  -  <%= urls[shortUrl] %>
-            <form method="POST" action="/urls/<%= shortUrl %>/delete">
-            <button type="submit" class="btn btn-primary">Delete</button>
+        <li><a href="http://localhost:8080/u/<%= shortUrl %>"><%= shortUrl %> </a>  -  <%= urls[shortUrl] %>
+          <div>
+            <form method="GET" action="/urls/<%= shortUrl %>" style="display: inline-block">
+              <button type="submit" class="btn btn-primary">Edit</button>
             </form>
-           <% }; %>
-         </li>
+            <form method="POST" action="/urls/<%= shortUrl %>/delete" style="display: inline-block">
+              <button type="submit" class="btn btn-primary">Delete</button>
+            </form>
+          </div>
+        </li>
+    <% }; %>
+
     </ul>
 
 </body>
