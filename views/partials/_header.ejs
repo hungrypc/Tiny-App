@@ -1,18 +1,19 @@
-<header>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-
-  <title>TinyApp</title>
-
-  <h1>Tiny App</h1>
+<h1>Tiny App</h1>
 
   <h5><a href="http://localhost:8080/urls/new/">Create New TinyURL</h5></a>
 
   <h6><a href="http://localhost:8080/urls/">Index</a></h6>
 
-  <p></p>
-
-</header>
+  <p>
+  <% if (username) { %>
+    <%= username %>
+    <form method="POST" action="/logout" style="display: inline-block;">
+    <button type="submit" class="btn btn-primary">Logout</button>
+  </form>
+  <% } else { %>
+  <form method="POST" action="/login">
+    <input type="text" name="username">
+    <button type="submit" class="btn btn-primary">Login</button>
+  </form>
+  <% } %>
+  </p>

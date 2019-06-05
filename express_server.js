@@ -1,16 +1,18 @@
 var express = require("express");
 var app = express();
 var PORT = 8080; // default port 8080
+const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 
 app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
 function generateRandomString(){
   let vocab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split('');
@@ -34,16 +36,27 @@ function generateRandomString(){
 // });
 
 app.get("/urls", (request, response) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    urls: urlDatabase,
+    username: request.cookies["username"],
+  };
   response.render('urls_index', templateVars);
 });
 
 app.get("/urls/new", (request, response) => {
-  response.render("urls_new");
+  let templateVars = {
+    username: request.cookies["username"],
+  };
+  response.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (request, response) => {
-  let templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase};
+  let templateVars = {
+    shortURL: request.params.shortURL,
+    longURL: urlDatabase,
+    username: request.cookies["username"],
+  };
+
   if (urlDatabase[request.params.shortURL]) {
     response.render("urls_show", templateVars);
   } else {
@@ -80,6 +93,16 @@ app.post("/urls/:shortURL", (request, response) => {
     urlDatabase[shortU] = newUrl;
   }
   response.redirect(`/urls/${shortU}`);
+});
+
+app.post('/login', (request, response) => {
+  response.cookie('username', request.body.username);
+  response.redirect('/urls');
+});
+
+app.post('/logout', (request, response) => {
+  response.clearCookie('username');
+  response.redirect('/urls');
 });
 
 
