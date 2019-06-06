@@ -13,19 +13,21 @@
   <p></p>
   <h5>Index of Links</h5>
     <ul>
+      <% if (locals.urls) { %>
+        <% for (shortUrl in urls) { %>
+                <li><a href="http://localhost:8080/u/<%= shortUrl %>"><%= shortUrl %> </a>  -  <%= urls[shortUrl] %>
+                  <div>
+                    <form method="GET" action="/urls/<%= shortUrl %>" style="display: inline-block">
+                      <button type="submit" class="btn btn-primary">Edit</button>
+                    </form>
+                    <form method="POST" action="/urls/<%= shortUrl %>/delete" style="display: inline-block">
+                      <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </li>
+            <% }; %>
+    <% } %>
 
-     <% for (shortUrl in urls) { %>
-        <li><a href="http://localhost:8080/u/<%= shortUrl %>"><%= shortUrl %> </a>  -  <%= urls[shortUrl] %>
-          <div>
-            <form method="GET" action="/urls/<%= shortUrl %>" style="display: inline-block">
-              <button type="submit" class="btn btn-primary">Edit</button>
-            </form>
-            <form method="POST" action="/urls/<%= shortUrl %>/delete" style="display: inline-block">
-              <button type="submit" class="btn btn-primary">Delete</button>
-            </form>
-          </div>
-        </li>
-    <% }; %>
 
     </ul>
 

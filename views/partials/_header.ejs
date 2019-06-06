@@ -5,15 +5,17 @@
   <h6><a href="http://localhost:8080/urls/">Index</a></h6>
 
   <p>
-  <% if (username) { %>
-    <%= username %>
+  <% if (locals.user) { %>
+    <%= user.email %>
     <form method="POST" action="/logout" style="display: inline-block;">
     <button type="submit" class="btn btn-primary">Logout</button>
   </form>
   <% } else { %>
-  <form method="POST" action="/login">
-    <input type="text" name="username">
-    <button type="submit" class="btn btn-primary">Login</button>
+  <form method="GET" action="/login" style="display: inline-block;">
+    <button type="submit" class="btn btn-info">Login</button>
+  </form>
+  <form method="GET" action="/urls/register" style="display: inline-block;">
+    <button type="submit" class="btn btn-info">Register</button>
   </form>
   <% } %>
   </p>

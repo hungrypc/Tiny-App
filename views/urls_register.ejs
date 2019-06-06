@@ -11,17 +11,12 @@
 <body style="font-size:20px; padding:50px;">
   <% include ./partials/_header %>
 
-    <h3> Tiny URL for: </h3>
-    <h5><%= longURL[shortURL] %></h5>
-    <h5><a href="http://localhost:8080/u/<%= shortURL %>"> <%= shortURL %> </a></h5>
-    <form method="POST" action="/urls/<%= shortURL %>/delete">
-            <button type="submit" class="btn btn-danger">Delete</button>
-    </form>
-      </br>
-    <form method="POST" action="/urls/<%= shortURL %>">
-      <label for="longURL">Edit URL:</label>
-      <input type="text" name="newURL" id="longURL" >
-      <button type="submit" class="btn btn-primary">Update</button>
+    <h3> Registration Page </h3>
+
+    <form method="POST" action="/urls/register">
+      <input type="text" name="email" placeholder="email@example.com">
+      <input type="password" name="password" placeholder="password">
+      <button type="submit" class="btn btn-primary">Register</button>
     </form>
 
 </body>
