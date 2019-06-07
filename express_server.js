@@ -3,6 +3,7 @@ var app = express();
 var PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -92,7 +93,7 @@ app.post('/login', (request, response) => {
   let currentUser;
   for (var key in users) {
     var user = users[key];
-    if (user.email === login && user.password === pw) {
+    if (user.email === login && bcrypt.compareSync(pw, user.password)) {
       currentUser = user.id;
     }
   }
@@ -121,10 +122,11 @@ app.post('/urls/register', (request, response) => {
   let userEmail = request.body.email;
   let userPassword = request.body.password;
   let user_id = generateRandomString();
+  let hashedPw = bcrypt.hashSync(userPassword, 10);
   let userObj = {
     id: user_id,
     email: userEmail,
-    password: userPassword,
+    password: hashedPw,
     db: {},
   };
 
@@ -132,10 +134,18 @@ app.post('/urls/register', (request, response) => {
     var user = users[key];
     if (user.email === userEmail) {
       response.status(400).send("email already registered");
+      break;
+    } else if (!userPassword) {
+        response.status(400).send("no password entered");
+        break;
+    } else if (!userEmail) {
+      response.status(400).send("no email entered");
+      break;
     } else {
-      response.cookie('user_id', user_id);
-      users[user_id] = userObj;
-      response.redirect('urls');
+        response.cookie('user_id', user_id);
+        users[user_id] = userObj;
+        response.redirect('urls');
+        break;
     }
   }
 
@@ -215,7 +225,6 @@ app.get("/u/:shortURL", (req, res) => {
       let database = u.db
       const shortLinks = Object.keys(database);
       const longLinks = Object.values(database);
-      console.log(shortLinks, longLinks)
       for (var item in shortLinks) {
         if (shortURL == shortLinks[item]) {
           let index = shortLinks.indexOf(shortURL);
