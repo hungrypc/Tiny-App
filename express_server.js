@@ -93,7 +93,9 @@ app.post("/urls/new", (request, response) => {
     date: currentDate,
     hits: 0,
   };
-  if (longUrl && user) {
+  if (!user) {
+    response.status(400).send("Access to TinyURL page denied.");
+  } else if (longUrl && user) {
     user.db[shortUrl] = longUrl;
     urlINFO[shortUrl] = infoObj
     response.redirect(`/urls/${ shortUrl }`);
