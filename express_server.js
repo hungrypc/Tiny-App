@@ -48,21 +48,11 @@ function generateRandomString(){
   return output;
 }
 
-// app.get("/", (request, response) => {
-//   response.send("Hello!");
-// });
 
-// app.get("/urls.json", (request, response) => {
-//   response.json(urlDatabase);
-// });
-
-// app.get("/hello", (request, response) => {
-//   response.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
+/* ----------------------------------------------------------------------------- */
 
 
 // HOME PAGE
-
 app.get("/urls", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -78,8 +68,8 @@ app.get("/urls", (request, response) => {
   }
 });
 
-// LOGIN PAGE
 
+// LOGIN PAGE
 app.get('/login', (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -93,7 +83,6 @@ app.get('/login', (request, response) => {
 app.post('/login', (request, response) => {
   const login = request.body.email;
   const pw = request.body.password;
-  // response.cookie('user_id', request.body.user_id);
   let currentUser;
   for (var key in users) {
     var user = users[key];
@@ -110,8 +99,8 @@ app.post('/login', (request, response) => {
 
 });
 
-// REGISTER PAGE
 
+// REGISTER PAGE
 app.get('/urls/register', (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -135,8 +124,7 @@ app.post('/urls/register', (request, response) => {
   };
 
   for (var key in users) {
-    var user = users[key];
-    if (user.email === userEmail) {
+    if (users[key].email == userEmail) {
       response.status(400).send("email already registered");
       break;
     } else if (!userPassword) {
@@ -145,18 +133,15 @@ app.post('/urls/register', (request, response) => {
     } else if (!userEmail) {
       response.status(400).send("no email entered");
       break;
-    } else {
-        request.session.user_id = user_id;
-        users[user_id] = userObj;
-        response.redirect('/urls');
-        break;
     }
   }
-
+  request.session.user_id = user_id;
+  users[user_id] = userObj;
+  response.redirect('/urls');
 });
 
-// CREATE NEW URL PAGE
 
+// CREATE NEW URL PAGE
 app.get("/urls/new", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -172,12 +157,11 @@ app.get("/urls/new", (request, response) => {
 
 });
 
-// TINY URL PAGE
 
+// TINY URL PAGE
 app.get("/urls/:shortURL", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
-  const shortie = request.params.shortURL;
   if (user) {
     let templateVars = {
     shortURL: request.params.shortURL,
@@ -192,7 +176,6 @@ app.get("/urls/:shortURL", (request, response) => {
   }
 });
 
-
 app.post("/urls/:shortURL", (request, response) => {
   const newUrl = request.body.newURL;
   const shortU = request.params.shortURL;
@@ -204,8 +187,8 @@ app.post("/urls/:shortURL", (request, response) => {
   response.redirect(`/urls/${shortU}`);
 });
 
-// CREATE NEW URL ACTION
 
+// CREATE NEW URL ACTION
 app.post("/urls", (request, response) => {
   let longUrl = request.body.longURL;
   let shortUrl = generateRandomString();
@@ -215,11 +198,10 @@ app.post("/urls", (request, response) => {
   response.redirect(`urls/${shortUrl}`);
 });
 
-// GO TO LINK
 
+// GO TO LINK
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  let shortURLstring = shortURL.toString();
   const user_id = req.session.user_id;
   const user = users[user_id];
   let longURL;
@@ -234,8 +216,8 @@ app.get("/u/:shortURL", (req, res) => {
           let index = shortLinks.indexOf(shortURL);
           longURL = longLinks[index];
         }
-      }
-    }
+      };
+    };
   };
   if (longURL) {
     res.redirect(longURL);
@@ -244,8 +226,8 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-// DELETE URL ACTION
 
+// DELETE URL ACTION
 app.post('/urls/:shortURL/delete', (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -253,9 +235,8 @@ app.post('/urls/:shortURL/delete', (request, response) => {
   response.redirect('/urls');
 });
 
-//
 
-
+// LOGOUT
 app.post('/logout', (request, response) => {
   request.session.user_id = null;
   response.redirect('/urls');
