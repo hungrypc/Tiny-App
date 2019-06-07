@@ -3,13 +3,13 @@ var app = express();
 var PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
-  name: 'session',
-  keys: ['key1', 'key2'],
+  name: "session",
+  keys: ["key1', 'key2"],
   maxAge: 24 * 60 * 60 * 1000
 }));
 
@@ -51,6 +51,20 @@ function generateRandomString(){
 
 /* ----------------------------------------------------------------------------- */
 
+app.get("/", (request, response) => {
+  const user_id = request.session.user_id;
+  const user = users[user_id];
+
+  if (user) {
+      const templateVars = {
+      urls: user.db,
+      user: user,
+      };
+    response.render("urls_index", templateVars);
+  } else {
+    response.render("urls_login", {});
+  }
+});
 
 // HOME PAGE
 app.get("/urls", (request, response) => {
@@ -62,25 +76,29 @@ app.get("/urls", (request, response) => {
       urls: user.db,
       user: user,
       };
-    response.render('urls_index', templateVars);
+    response.render("urls_index", templateVars);
   } else {
-    response.render('urls_index', {});
+    response.status(400).send("Please log in to use TinyURL.");
   }
 });
 
 
 // LOGIN PAGE
-app.get('/login', (request, response) => {
+app.get("/login", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
   const templateVars = {
     urls: urlDatabase,
     user: user,
   };
-  response.render('urls_login', templateVars);
+  if (user) {
+    response.redirect("/urls");
+  } else {
+    response.render("urls_login", templateVars);
+  }
 });
 
-app.post('/login', (request, response) => {
+app.post("/login", (request, response) => {
   const login = request.body.email;
   const pw = request.body.password;
   let currentUser;
@@ -92,26 +110,30 @@ app.post('/login', (request, response) => {
   }
   if (currentUser) {
     request.session.user_id = currentUser;
-    response.redirect('/urls');
+    response.redirect("/urls");
   }else{
-    response.status(400).send("invalid login");
+    response.status(400).send("Invalid login.");
   }
 
 });
 
 
 // REGISTER PAGE
-app.get('/urls/register', (request, response) => {
+app.get("/urls/register", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
   const templateVars = {
     urls: urlDatabase,
     user: user,
   };
-  response.render('urls_register', templateVars);
+  if (user) {
+    response.redirect("/urls");
+  } else {
+    response.render("urls_register", templateVars);
+  }
 });
 
-app.post('/urls/register', (request, response) => {
+app.post("/urls/register", (request, response) => {
   let userEmail = request.body.email;
   let userPassword = request.body.password;
   let user_id = generateRandomString();
@@ -125,19 +147,19 @@ app.post('/urls/register', (request, response) => {
 
   for (var key in users) {
     if (users[key].email == userEmail) {
-      response.status(400).send("email already registered");
+      response.status(400).send("Nmail already registered.");
       break;
     } else if (!userPassword) {
-        response.status(400).send("no password entered");
+        response.status(400).send("No password entered.");
         break;
     } else if (!userEmail) {
-      response.status(400).send("no email entered");
+      response.status(400).send("No email entered.");
       break;
     }
   }
   request.session.user_id = user_id;
   users[user_id] = userObj;
-  response.redirect('/urls');
+  response.redirect("/urls");
 });
 
 
@@ -152,7 +174,7 @@ app.get("/urls/new", (request, response) => {
   if (user) {
     response.render("urls_new", templateVars);
   } else {
-    response.redirect('urls');
+    response.redirect('/');
   }
 
 });
@@ -172,7 +194,7 @@ app.get("/urls/:shortURL", (request, response) => {
       response.render("urls_show", templateVars);
     }
   }
-  response.redirect('/urls');
+  response.status(400).send("Unable to view TinyURL page.");
 });
 
 app.post("/urls/:shortURL", (request, response) => {
@@ -193,15 +215,19 @@ app.post("/urls", (request, response) => {
   let shortUrl = generateRandomString();
   const user_id = request.session.user_id;
   const user = users[user_id];
-  user.db[shortUrl] = longUrl;
-  response.redirect(`urls/${shortUrl}`);
+  if (longUrl) {
+    user.db[shortUrl] = longUrl;
+    response.redirect(`urls/${shortUrl}`);
+  } else {
+    response.status(400).send("No URL entered.");
+  }
 });
 
 
 // GO TO LINK
-app.get("/u/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const user_id = req.session.user_id;
+app.get("/u/:shortURL", (request, response) => {
+  const shortURL = request.params.shortURL;
+  const user_id = request.session.user_id;
   const user = users[user_id];
   let longURL;
   for (var key in users) {
@@ -219,26 +245,26 @@ app.get("/u/:shortURL", (req, res) => {
     };
   };
   if (longURL) {
-    res.redirect(longURL);
+    response.redirect(longURL);
   } else {
-    res.redirect('/urls');
+    response.status(400).send("TinyURL does not exist.");
   }
 });
 
 
 // DELETE URL ACTION
-app.post('/urls/:shortURL/delete', (request, response) => {
+app.post("/urls/:shortURL/delete", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
   delete user.db[request.params.shortURL];
-  response.redirect('/urls');
+  response.redirect("/urls");
 });
 
 
 // LOGOUT
-app.post('/logout', (request, response) => {
+app.post("/logout", (request, response) => {
   request.session.user_id = null;
-  response.redirect('/urls');
+  response.redirect("/");
 });
 
 
