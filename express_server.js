@@ -22,6 +22,13 @@ const users = {
   "user2RandomID": {}
 };
 
+const urlINFO = {
+  "testid": {
+    date: "7/JUN/2019",
+    hits: 0,
+  },
+};
+
 function generateRandomString(){
   let vocab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split("");
   let output = "";
@@ -29,6 +36,17 @@ function generateRandomString(){
     output += vocab[Math.floor(Math.random() * vocab.length)];
   }
   return output;
+}
+
+function getDate() {
+  let date = new Date();
+  return date.toDateString();
+}
+
+function updateHit(url) {
+  let x = urlINFO[url].hits;
+  let newHit = x + 1;
+  urlINFO[url].hits = newHit;
 }
 
 /* ----------------------------------------------------------------------------------- */
@@ -48,6 +66,43 @@ app.get("/", (request, response) => {
   }
 });
 
+
+// CREATE NEW URL
+app.get("/urls/new", (request, response) => {
+  const user_id = request.session.user_id;
+  const user = users[user_id];
+  const templateVars = {
+    urls: urlDatabase,
+    user: user,
+  };
+  if (user) {
+    response.render("urls_new", templateVars);
+  } else {
+    response.redirect("/");
+  }
+
+});
+
+app.post("/urls/new", (request, response) => {
+  let longUrl = request.body.longURL;
+  let shortUrl = generateRandomString();
+  const user_id = request.session.user_id;
+  const user = users[user_id];
+  const currentDate = getDate();
+  let infoObj = {
+    date: currentDate,
+    hits: 0,
+  };
+  if (longUrl && user) {
+    user.db[shortUrl] = longUrl;
+    urlINFO[shortUrl] = infoObj
+    response.redirect(`/urls/${ shortUrl }`);
+  } else {
+    response.status(400).send("No URL entered.");
+  }
+});
+
+
 // INDEX PAGE
 app.get("/urls", (request, response) => {
   const user_id = request.session.user_id;
@@ -57,6 +112,7 @@ app.get("/urls", (request, response) => {
       const templateVars = {
       urls: user.db,
       user: user,
+      info: urlINFO
       };
     response.render("urls_index", templateVars);
   } else {
@@ -148,36 +204,6 @@ app.post("/urls/register", (request, response) => {
 });
 
 
-// CREATE NEW URL
-app.get("/urls/new", (request, response) => {
-  const user_id = request.session.user_id;
-  const user = users[user_id];
-  const templateVars = {
-    urls: urlDatabase,
-    user: user,
-  };
-  if (user) {
-    response.render("urls_new", templateVars);
-  } else {
-    response.redirect("/");
-  }
-
-});
-
-app.post("/urls/new", (request, response) => {
-  let longUrl = request.body.longURL;
-  let shortUrl = generateRandomString();
-  const user_id = request.session.user_id;
-  const user = users[user_id];
-  if (longUrl) {
-    user.db[shortUrl] = longUrl;
-    response.redirect(`urls/${shortUrl}`);
-  } else {
-    response.status(400).send("No URL entered.");
-  }
-});
-
-
 // TINY URL PAGE
 app.get("/urls/:shortURL", (request, response) => {
   const user_id = request.session.user_id;
@@ -187,11 +213,12 @@ app.get("/urls/:shortURL", (request, response) => {
       shortURL: request.params.shortURL,
       longURL: user.db,
       user: user,
-  };
+      info: urlINFO,
+    }
     if (user.db[request.params.shortURL]) {
       response.render("urls_show", templateVars);
     }
-  }
+  };
   response.status(400).send("Unable to view TinyURL page.");
 });
 
@@ -228,6 +255,7 @@ app.get("/u/:shortURL", (request, response) => {
     };
   };
   if (longURL) {
+    updateHit(shortURL.toString());
     response.redirect(longURL);
   } else {
     response.status(400).send("TinyURL does not exist.");

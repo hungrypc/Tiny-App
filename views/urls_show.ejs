@@ -17,6 +17,9 @@
     <form method="POST" action="/urls/<%= shortURL %>/delete">
             <button type="submit" class="btn btn-danger">Delete</button>
     </form>
+    </br>
+    <p>Date Created: <%= info[shortURL].date %></p>
+    <p>Hits via TinyURL: <%= info[shortURL].hits %></p>
       </br>
     <form method="POST" action="/urls/<%= shortURL %>">
       <label for="longURL">Edit URL:</label>
