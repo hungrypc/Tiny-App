@@ -2,14 +2,14 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieSession = require('cookie-session');
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: "session",
-  keys: ["key1', 'key2"],
+  keys: ["key1", "key2"],
   maxAge: 24 * 60 * 60 * 1000
 }));
 
@@ -23,7 +23,7 @@ const users = {
 };
 
 function generateRandomString(){
-  let vocab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split('');
+  let vocab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split("");
   let output = "";
   for (let i = 0; i < 6; i++) {
     output += vocab[Math.floor(Math.random() * vocab.length)];
@@ -159,7 +159,7 @@ app.get("/urls/new", (request, response) => {
   if (user) {
     response.render("urls_new", templateVars);
   } else {
-    response.redirect('/');
+    response.redirect("/");
   }
 
 });
@@ -246,7 +246,7 @@ app.post("/urls/:shortURL/delete", (request, response) => {
 
 // CATCHALL
 app.get("*", (request, response) => {
-  response.redirect("/urls/");
+  response.redirect("/");
 });
 
 /* ----------------------------------------------------------------------------------- */
