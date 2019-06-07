@@ -170,10 +170,9 @@ app.get("/urls/:shortURL", (request, response) => {
   };
     if (user.db[request.params.shortURL]) {
       response.render("urls_show", templateVars);
-    } else {
-      response.redirect('/urls');
     }
   }
+  response.redirect('/urls');
 });
 
 app.post("/urls/:shortURL", (request, response) => {
