@@ -2,12 +2,16 @@ var express = require("express");
 var app = express();
 var PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -60,7 +64,7 @@ function generateRandomString(){
 // HOME PAGE
 
 app.get("/urls", (request, response) => {
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
 
   if (user) {
@@ -77,7 +81,7 @@ app.get("/urls", (request, response) => {
 // LOGIN PAGE
 
 app.get('/login', (request, response) => {
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   const templateVars = {
     urls: urlDatabase,
@@ -98,7 +102,7 @@ app.post('/login', (request, response) => {
     }
   }
   if (currentUser) {
-    response.cookie('user_id', currentUser);
+    request.session.user_id = currentUser;
     response.redirect('/urls');
   }else{
     response.status(400).send("invalid login");
@@ -109,7 +113,7 @@ app.post('/login', (request, response) => {
 // REGISTER PAGE
 
 app.get('/urls/register', (request, response) => {
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   const templateVars = {
     urls: urlDatabase,
@@ -142,9 +146,9 @@ app.post('/urls/register', (request, response) => {
       response.status(400).send("no email entered");
       break;
     } else {
-        response.cookie('user_id', user_id);
+        request.session.user_id = user_id;
         users[user_id] = userObj;
-        response.redirect('urls');
+        response.redirect('/urls');
         break;
     }
   }
@@ -154,7 +158,7 @@ app.post('/urls/register', (request, response) => {
 // CREATE NEW URL PAGE
 
 app.get("/urls/new", (request, response) => {
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   const templateVars = {
     urls: urlDatabase,
@@ -171,7 +175,7 @@ app.get("/urls/new", (request, response) => {
 // TINY URL PAGE
 
 app.get("/urls/:shortURL", (request, response) => {
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   const shortie = request.params.shortURL;
   if (user) {
@@ -192,7 +196,7 @@ app.get("/urls/:shortURL", (request, response) => {
 app.post("/urls/:shortURL", (request, response) => {
   const newUrl = request.body.newURL;
   const shortU = request.params.shortURL;
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   if (newUrl) {
     user.db[shortU] = newUrl;
@@ -205,7 +209,7 @@ app.post("/urls/:shortURL", (request, response) => {
 app.post("/urls", (request, response) => {
   let longUrl = request.body.longURL;
   let shortUrl = generateRandomString();
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   user.db[shortUrl] = longUrl;
   response.redirect(`urls/${shortUrl}`);
@@ -216,7 +220,7 @@ app.post("/urls", (request, response) => {
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   let shortURLstring = shortURL.toString();
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const user = users[user_id];
   let longURL;
   for (var key in users) {
@@ -243,7 +247,7 @@ app.get("/u/:shortURL", (req, res) => {
 // DELETE URL ACTION
 
 app.post('/urls/:shortURL/delete', (request, response) => {
-  const user_id = request.cookies["user_id"];
+  const user_id = request.session.user_id;
   const user = users[user_id];
   delete user.db[request.params.shortURL];
   response.redirect('/urls');
@@ -253,7 +257,7 @@ app.post('/urls/:shortURL/delete', (request, response) => {
 
 
 app.post('/logout', (request, response) => {
-  response.clearCookie('user_id');
+  request.session.user_id = null;
   response.redirect('/urls');
 });
 
