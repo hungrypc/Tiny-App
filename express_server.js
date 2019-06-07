@@ -1,6 +1,6 @@
-var express = require("express");
-var app = express();
-var PORT = 8080; // default port 8080
+const express = require("express");
+const app = express();
+const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcrypt");
@@ -13,43 +13,25 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
-var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+/* ----------------------------------------------------------------------------------- */
+
+const urlDatabase = {};
 
 const users = {
-  "userRandomID" : {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "123",
-    db: {
-      "b2xVn2": "http://www.lighthouselabs.ca",
-      "9sm5xK": "http://www.google.com"
-    }
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "456",
-    db: {
-      "b2xVn2": "http://www.lighthouselabs.ca",
-      "9sm5xK": "http://www.google.com"
-    }
-  }
+  "userRandomID" : {},
+  "user2RandomID": {}
 };
 
 function generateRandomString(){
   let vocab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split('');
   let output = "";
-  for (var i = 0; i < 6; i++) {
+  for (let i = 0; i < 6; i++) {
     output += vocab[Math.floor(Math.random() * vocab.length)];
   }
   return output;
 }
 
-
-/* ----------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------- */
 
 app.get("/", (request, response) => {
   const user_id = request.session.user_id;
@@ -66,7 +48,7 @@ app.get("/", (request, response) => {
   }
 });
 
-// HOME PAGE
+// INDEX PAGE
 app.get("/urls", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -83,7 +65,7 @@ app.get("/urls", (request, response) => {
 });
 
 
-// LOGIN PAGE
+// LOGIN / LOGOUT
 app.get("/login", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -98,12 +80,17 @@ app.get("/login", (request, response) => {
   }
 });
 
+app.post("/logout", (request, response) => {
+  request.session.user_id = null;
+  response.redirect("/");
+});
+
 app.post("/login", (request, response) => {
   const login = request.body.email;
   const pw = request.body.password;
   let currentUser;
-  for (var key in users) {
-    var user = users[key];
+  for (let key in users) {
+    let user = users[key];
     if (user.email === login && bcrypt.compareSync(pw, user.password)) {
       currentUser = user.id;
     }
@@ -111,10 +98,9 @@ app.post("/login", (request, response) => {
   if (currentUser) {
     request.session.user_id = currentUser;
     response.redirect("/urls");
-  }else{
+  } else {
     response.status(400).send("Invalid login.");
   }
-
 });
 
 
@@ -134,24 +120,23 @@ app.get("/urls/register", (request, response) => {
 });
 
 app.post("/urls/register", (request, response) => {
-  let userEmail = request.body.email;
-  let userPassword = request.body.password;
-  let user_id = generateRandomString();
-  let hashedPw = bcrypt.hashSync(userPassword, 10);
-  let userObj = {
+  const userEmail = request.body.email;
+  const userPassword = request.body.password;
+  const user_id = generateRandomString();
+  const hashedPw = bcrypt.hashSync(userPassword, 10);
+  const userObj = {
     id: user_id,
     email: userEmail,
     password: hashedPw,
     db: {},
   };
-
-  for (var key in users) {
+  for (let key in users) {
     if (users[key].email == userEmail) {
-      response.status(400).send("Nmail already registered.");
+      response.status(400).send("Email already registered.");
       break;
     } else if (!userPassword) {
-        response.status(400).send("No password entered.");
-        break;
+      response.status(400).send("No password entered.");
+      break;
     } else if (!userEmail) {
       response.status(400).send("No email entered.");
       break;
@@ -163,7 +148,7 @@ app.post("/urls/register", (request, response) => {
 });
 
 
-// CREATE NEW URL PAGE
+// CREATE NEW URL
 app.get("/urls/new", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -179,6 +164,19 @@ app.get("/urls/new", (request, response) => {
 
 });
 
+app.post("/urls/new", (request, response) => {
+  let longUrl = request.body.longURL;
+  let shortUrl = generateRandomString();
+  const user_id = request.session.user_id;
+  const user = users[user_id];
+  if (longUrl) {
+    user.db[shortUrl] = longUrl;
+    response.redirect(`urls/${shortUrl}`);
+  } else {
+    response.status(400).send("No URL entered.");
+  }
+});
+
 
 // TINY URL PAGE
 app.get("/urls/:shortURL", (request, response) => {
@@ -186,9 +184,9 @@ app.get("/urls/:shortURL", (request, response) => {
   const user = users[user_id];
   if (user) {
     let templateVars = {
-    shortURL: request.params.shortURL,
-    longURL: user.db,
-    user: user,
+      shortURL: request.params.shortURL,
+      longURL: user.db,
+      user: user,
   };
     if (user.db[request.params.shortURL]) {
       response.render("urls_show", templateVars);
@@ -209,34 +207,19 @@ app.post("/urls/:shortURL", (request, response) => {
 });
 
 
-// CREATE NEW URL ACTION
-app.post("/urls", (request, response) => {
-  let longUrl = request.body.longURL;
-  let shortUrl = generateRandomString();
-  const user_id = request.session.user_id;
-  const user = users[user_id];
-  if (longUrl) {
-    user.db[shortUrl] = longUrl;
-    response.redirect(`urls/${shortUrl}`);
-  } else {
-    response.status(400).send("No URL entered.");
-  }
-});
-
-
 // GO TO LINK
 app.get("/u/:shortURL", (request, response) => {
   const shortURL = request.params.shortURL;
   const user_id = request.session.user_id;
   const user = users[user_id];
   let longURL;
-  for (var key in users) {
-    var u = users[key];
-    for (var link in u) {
+  for (let key in users) {
+    let u = users[key];
+    for (let link in u) {
       let database = u.db
       const shortLinks = Object.keys(database);
       const longLinks = Object.values(database);
-      for (var item in shortLinks) {
+      for (let item in shortLinks) {
         if (shortURL == shortLinks[item]) {
           let index = shortLinks.indexOf(shortURL);
           longURL = longLinks[index];
@@ -252,7 +235,7 @@ app.get("/u/:shortURL", (request, response) => {
 });
 
 
-// DELETE URL ACTION
+// DELETE URL
 app.post("/urls/:shortURL/delete", (request, response) => {
   const user_id = request.session.user_id;
   const user = users[user_id];
@@ -261,17 +244,12 @@ app.post("/urls/:shortURL/delete", (request, response) => {
 });
 
 
-// LOGOUT
-app.post("/logout", (request, response) => {
-  request.session.user_id = null;
-  response.redirect("/");
-});
-
-
-// catchall
+// CATCHALL
 app.get("*", (request, response) => {
   response.redirect("/urls/");
 });
+
+/* ----------------------------------------------------------------------------------- */
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
